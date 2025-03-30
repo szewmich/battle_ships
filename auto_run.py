@@ -59,3 +59,5 @@ if __name__ == "__main__":
         fun.save_adv_times(board_state_100chars_code, time_adv)
 
         print(f'Files done: {files_done + 1} out of {n_app_files}')
+
+# tu jakis komentarz sie dodal
