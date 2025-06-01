@@ -102,8 +102,8 @@ def find_highest_probability_number(counts, generated_games, conf_level, margin_
 
     if is_confident and generated_games >= required_samples and generated_games >= 100:
         done = True
-        print(confidence_intervals)
-        print(confidence_intervals[most_common][0])
+        #print(confidence_intervals)
+        #print(confidence_intervals[most_common][0])
     if not is_confident and generated_games >= required_samples and generated_games >= 100:
         limiter = "confidence"
     if is_confident and not generated_games >= required_samples and generated_games >= 100:
@@ -116,7 +116,7 @@ def find_highest_probability_number(counts, generated_games, conf_level, margin_
 ###########################################################################
 # MAIN FUNCTION
 ###########################################################################
-def calculate_probs_montecarlo (known_board, conf_level = 2.17, margin_estim = 1.00, margin_highest = 0.06):
+def calculate_probs_montecarlo (known_board, conf_level = 2.58, margin_estim = 1.00, margin_highest = 0.12):
     start_time = time.time()
     orientations = ('hor', 'ver')
     generated_games = 0
@@ -240,16 +240,16 @@ if __name__ == "__main__":
 
     known_board = np.zeros((10, 10), dtype = "int16")
 
-    known_board[0] = [0, 0, 0, 7, 4, 4, 4, 4, 7, 0]
-    known_board[1] = [0, 0, 0, 7, 7, 7, 7, 7, 7, 0]
-    known_board[2] = [0, 7, 7, 7, 0, 0, 7, 3, 7, 7]
-    known_board[3] = [0, 7, 2, 7, 0, 0, 7, 3, 7, 0]
-    known_board[4] = [7, 7, 2, 7, 0, 0, 7, 3, 7, 7]
-    known_board[5] = [0, 7, 7, 7, 0, 0, 7, 7, 7, 0]
-    known_board[6] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 7]
-    known_board[7] = [0, 0, 0, 0, 0, 0, 0, 7, 0, 0]
-    known_board[8] = [7, 7, 7, 7, 7, 7, 7, 0, 1, 0]
-    known_board[9] = [7, 5, 5, 5, 5, 5, 7, 0, 0, 0]
+    known_board[0] = [5, 5, 5, 5, 5, 7, 7, 3, 3, 3]
+    known_board[1] = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
+    known_board[2] = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
+    known_board[3] = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
+    known_board[4] = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
+    known_board[5] = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
+    known_board[6] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    known_board[7] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    known_board[8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    known_board[9] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     time_avg = 0
     n_runs = 1

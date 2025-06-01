@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import copy
 import time
 import random
@@ -6,7 +7,9 @@ import os
 
 import random_board_generator
 import prob_density_montecarlo
+import prob_density_advanced
 import fun
+import RTP_lmdb as rtp
 
 ###########################################################################
 # INITIAL DATA SHARED ACROSS ALL GAMES (NOT MODIFIED ONCE CREATED)
@@ -18,6 +21,21 @@ moves_till_break = 100
 prob_maps_mc_history_dir = "prob_density_maps_mc_history\\"
 prob_maps_mc_100chars_dir = "prob_density_maps_mc_100chars\\"
 prob_maps_adv_100chars_dir = "prob_density_maps_adv_100chars\\"
+all_games_results_file_path = "all_games_results.csv"
+
+# Initialize lmdb enviroment (Data storage system for RTP library - more explained later)
+SHARD_COUNT = 100  # Number of LMDB database shards
+LMDB_PATH_TEMPLATE = "prob_density_maps_mc_lmdb\\shard_{:02d}.lmdb"  # LMDB file path pattern
+MAP_SIZE = 10 ** 8  # 100MB per shard (can be increased at any time)
+shard_envs = rtp. initialize_RTP_lmdb(SHARD_COUNT, LMDB_PATH_TEMPLATE, MAP_SIZE)
+
+# Load all_games_results file or create new one
+if all_games_results_file_path in os.listdir(os.getcwd()):
+    all_games_results = pd.read_csv(all_games_results_file_path)
+    print('loaded existing all_games_results dataframe')
+else:
+    all_games_results = None
+    print('created new all_games_results dataframe')
 
 # GLOBAL COUNTERS
 moves_all_games = 0
@@ -99,6 +117,9 @@ for g_num in range(1, n_games + 1):
         if board_initial[x][y] == 7:
             board_initial[x][y] = 0
 
+    # 100chars_code encodes initial board state in a string of 100 characters (0-9)
+    board_initial_100chars_code = fun.update_board_state_100chars_code(board_initial)
+
     # Detect and group all ships that are present on the initial board in a list.
     # There should be 7 items in the list, 1 per each ship. Each ship contains list of fields (X, Y) coord. it occupies
     ship_fields_initial = []
@@ -119,6 +140,13 @@ for g_num in range(1, n_games + 1):
 
     moves = 0
     hit_count = 0
+
+    # number of board states retrieved from database or calculated using certain method - for statistics
+    n_retrieved = 0
+    n_obvious = 0
+    n_calc_mc = 0
+    n_calc_adv = 0
+    target_methods = ''
 
     # All game scenarios start with "000" code
     game_history_code = "000"
@@ -141,7 +169,6 @@ for g_num in range(1, n_games + 1):
             game_history_code = game_history_code + "-" + previous_bf
 
         # 100chars_code encodes current known board state, without recording actual game history
-        # It is simpler and does not allow duplicate data, so it is used as main data storage system
         board_state_100chars_code = fun.update_board_state_100chars_code(known_board)
 
         hit = False
@@ -157,34 +184,50 @@ for g_num in range(1, n_games + 1):
         # FIND TARGET AND SAVE CALCULATION DATA
         #######################################
 
-        # Check if there is any field that is obvious as a next target
-        obvious_field = fun.check_if_obvious(known_board)
-        if obvious_field is not None:
-            best_field = list(obvious_field)
-            print("Only one option possible")
-
-        # Check if such file already exist in the RadioTelegraphic Phonebook (RTP) Library.
-        # If so, load the data, find highest probability fields list (with given margin) and pick one randomly.
+        # Check if the calculation data already exist in the RadioTelegraphic Phonebook (RTP) Library.
+        # If so, load the data, find highest probability fields list (with given margin) and pick on e randomly.
         # Margin of 0.05 means that only fields where calculated probability values are above 95% of the
         # maximum found probability qualify as "good fields" to randomly pick from.
         # Choose low margin for more linearized gameplay or higher margin for more variation.
-        elif prob_map_100chars_file_name in prob_map_library:
-            full_path = prob_maps_mc_100chars_dir + prob_map_100chars_file_name
-            good_fields, best_prob, occurances_mc, samples_mc = fun.load_data(full_path, margin=0.002)
+        occurances = rtp.load_array_from_RTP_lmdb(known_board, LMDB_PATH_TEMPLATE)
+        if occurances is not None:
+            good_fields, best_field, total_samples, best_prob = fun.find_best_fields(occurances, margin = 0.002)
             best_field = random.choice(good_fields)
+            n_retrieved +=1
+            target_methods = target_methods + 'r'
 
-        # If no such file exists, calculate probabilities with montecarlo approach for current game state
-        # That's the most important part of this whole project
+
+        # If no data found in RTP, check if there is any field that is obvious as a next target
+        #obvious_field = fun.check_if_obvious(known_board)
+        elif (obvious_field := fun.check_if_obvious(known_board)) is not None:
+            best_field = list(obvious_field)
+            print("Only one option possible")
+            n_obvious +=1
+            target_methods = target_methods + 'o'
+
+        # If there is no obvious field, calculate probabilities with montecarlo approach for current game state
+        # That's the key part of this whole project
         else:
-            print(f'Did not find precalculated board_state_100chars_code: {board_state_100chars_code} - Calculating...')
-            best_field, time_mc, prob_dens_map, best_prob = prob_density_montecarlo.\
-                                                            calculate_probs_montecarlo(known_board)
+            n_zeros = board_state_100chars_code.count("0")
+            if n_zeros > 50:
+                print(f'Did not find precalculated board_state_100chars_code: {board_state_100chars_code} - Calculating using MC method...')
+                best_field, calc_time, occurances, best_prob = prob_density_montecarlo.\
+                                                                calculate_probs_montecarlo(known_board, conf_level = 2.58, margin_estim = 1.00, margin_highest = 0.12)
+                n_calc_mc +=1
+                target_methods = target_methods + 'm'
+            else:
+                print(f'Did not find precalculated board_state_100chars_code: {board_state_100chars_code} - Calculating using ADV method...')
+                occurances, best_field, best_prob, total_unique, calc_time, game_reduced_code =\
+                    prob_density_advanced.calculate_probs_advanced(known_board)
+                n_calc_adv +=1
+                target_methods = target_methods + 'a'
 
             # Add calculated data to the library. Do it only if calculation took > 0.1s
             # (to avoid overloading the library with lots of data that could be calculated fast in place)
-            if time_mc > 0.1:
-                fun.write_to_library (prob_maps_mc_history_dir, prob_dens_map, prob_map_history_file_name)
-                fun.write_to_library (prob_maps_mc_100chars_dir, prob_dens_map, prob_map_100chars_file_name)
+            if calc_time > 0.1:
+                # fun.write_to_library (prob_maps_mc_history_dir, occurances, prob_map_history_file_name)
+                # fun.write_to_library (prob_maps_mc_100chars_dir, occurances, prob_map_100chars_file_name)
+                rtp.save_to_RTP_lmdb(known_board, occurances, shard_envs)
 
         ###############################################
         # TARGET SET - NOW SHOOT AND UPDATE KNOWN BOARD
@@ -202,8 +245,8 @@ for g_num in range(1, n_games + 1):
 
             # Find the ship that the hit field belongs to. Remove that field from the remaining fields list of that ship
             for ship in ship_fields_left:
-                if best_field in ship:
-                    ship.remove(best_field)
+                if list(best_field) in ship:
+                    ship.remove(list(best_field))
                     # If this was the last field removed from the remaining fields for that ship, it gets sunk.
                     # Then the attacker is informed about the ship's length, so the board_known is updated with
                     # ship's length values in place of '1's and the neighbouring fields become forbidden zone ('7')
@@ -229,27 +272,51 @@ for g_num in range(1, n_games + 1):
     ###############################################
 
     time_game = round(time.time() - zero_time)
-
     print('Finished game number', (g_num))
     print ('total moves: ', moves)
     print ('total time: ', time_game)
 
-    moves_all_games = moves_all_games + moves
-    time_all_games = time_all_games + time_game
 
-    moves_avg = (moves_all_games)/(g_num)
-    time_avg = (time_all_games)/(g_num)
+    new_row_data = [board_initial_100chars_code, game_history_code, moves, time_game, n_retrieved, n_obvious, n_calc_mc, n_calc_adv, target_methods]
+    new_row = pd.DataFrame([new_row_data], columns=['board_initial_100chars_code', 'game_history_code', 'moves', 'time_game', 'n_retrieved', 'n_obvious', 'n_calc_mc', 'n_calc_adv', 'target_methods'])
 
+    if all_games_results is not None:
+        all_games_results = pd.concat([all_games_results, new_row], ignore_index=True)
+    else:
+        all_games_results = new_row.copy()
+
+    # Save as a .csv file after each completed game
+    all_games_results.to_csv(all_games_results_file_path, index=False)
+
+
+    moves_avg = all_games_results['moves'].mean()
+    time_avg = all_games_results['time_game'].mean()
+
+    print(all_games_results)
     print('average moves per game: ', moves_avg)
     print('average time per game: ', time_avg)
 
-    sum_hits = sum_hits + hit_count
 
-    # Calculated average probability of hit per one shot (calculated)
-    prob_avg = sum_probs / moves_all_games * 100
 
-    # Actual scored hit ratio (percentage)
-    score_perc = sum_hits / moves_all_games * 100
+    ###################
+    # OLD SUMMARY
+    ###################
+    # moves_all_games = moves_all_games + moves
+    # time_all_games = time_all_games + time_game
 
-    print('prob_avg: ', prob_avg)
-    print('score_perc: ', score_perc)
+    # moves_avg = (moves_all_games)/(g_num)
+    # time_avg = (time_all_games)/(g_num)
+
+    # print('average moves per game: ', moves_avg)
+    # print('average time per game: ', time_avg)
+
+    # sum_hits = sum_hits + hit_count
+
+    # # Calculated average probability of hit per one shot (calculated)
+    # prob_avg = sum_probs / moves_all_games * 100
+
+    # # Actual scored hit ratio (percentage)
+    # score_perc = sum_hits / moves_all_games * 100
+
+    # print('prob_avg: ', prob_avg)
+    # print('score_perc: ', score_perc)

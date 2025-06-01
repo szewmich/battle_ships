@@ -327,6 +327,8 @@ def calculate_probs_advanced (known_board):
     m = occurances.max()
     best_prob = m / total_unique
     best_field = np.argwhere(occurances == m)
+    # If there are multiple fields with the same max value, choose the first one
+    best_field = best_field[0].tolist()
 
     print(f'max probability for field: {best_field}')
     print(occurances)
@@ -350,16 +352,16 @@ if __name__ == "__main__":
 
     known_board = np.zeros((10, 10), dtype = "int16")
 
-    known_board[0] = [0, 0, 0, 7, 4, 4, 4, 4, 7, 0]
-    known_board[1] = [0, 0, 0, 7, 7, 7, 7, 7, 7, 0]
-    known_board[2] = [0, 7, 7, 7, 0, 0, 7, 3, 7, 7]
-    known_board[3] = [0, 7, 2, 7, 0, 0, 7, 3, 7, 0]
-    known_board[4] = [7, 7, 2, 7, 0, 0, 7, 3, 7, 7]
-    known_board[5] = [0, 7, 7, 7, 0, 0, 7, 7, 7, 0]
-    known_board[6] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 7]
-    known_board[7] = [0, 0, 0, 0, 0, 0, 0, 7, 0, 0]
-    known_board[8] = [7, 7, 7, 7, 7, 7, 7, 0, 1, 0]
-    known_board[9] = [7, 5, 5, 5, 5, 5, 7, 0, 0, 0]
+    known_board[0] = [7, 2, 7, 0, 0, 0, 7, 3, 3, 3]
+    known_board[1] = [7, 2, 7, 0, 0, 7, 7, 7, 7, 7]
+    known_board[2] = [7, 7, 7, 0, 7, 0, 0, 0, 7, 0]
+    known_board[3] = [0, 0, 0, 7, 7, 7, 7, 7, 7, 7]
+    known_board[4] = [0, 0, 7, 7, 5, 5, 5, 5, 5, 7]
+    known_board[5] = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
+    known_board[6] = [7, 4, 7, 7, 7, 0, 7, 1, 0, 0]
+    known_board[7] = [7, 4, 7, 3, 7, 0, 0, 0, 7, 7]
+    known_board[8] = [7, 4, 7, 3, 7, 7, 0, 7, 7, 2]
+    known_board[9] = [7, 4, 7, 3, 7, 7, 0, 0, 7, 2]
 
     # known_board[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     # known_board[1] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]

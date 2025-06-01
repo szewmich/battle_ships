@@ -220,7 +220,7 @@ def sink_ship(board_known: np.ndarray, ship_fields_initial: list, best_field: tu
     :return: Updated known board state
     """
     for ship in ship_fields_initial:
-        if best_field in ship:
+        if list(best_field) in ship:
             hits = ship
             n_seg = len(ship)
             break
@@ -390,7 +390,7 @@ def check_if_obvious (board: np.ndarray) -> None or tuple[int, int]:
             # If there is only one available neighbouring field to shoot at, return its coordinates
             if len(zero_neighbours) == 1:
                 obvious_field = zero_neighbours[0]
-                return obvious_field
+                return list(obvious_field)
 
         elif len(gr) > 1 and gr[0][0] == gr[1][0]:    # X coordinates are equal -> ship is horizontal (check left/right)
             x = gr[0][0]
@@ -406,7 +406,7 @@ def check_if_obvious (board: np.ndarray) -> None or tuple[int, int]:
             # If there is only one available neighbouring field to shoot at, return its coordinates
             if len(zero_neighbours) == 1:
                 obvious_field = zero_neighbours[0]
-                return obvious_field
+                return list(obvious_field)
 
         elif len(gr) > 1 and gr[0][1] == gr[1][1]:    # Y coordinates are equal -> ship is vertical (check up/down)
             y = gr[0][1]
@@ -422,8 +422,44 @@ def check_if_obvious (board: np.ndarray) -> None or tuple[int, int]:
             # If there is only one available neighbouring field to shoot at, return its coordinates
             if len(zero_neighbours) == 1:
                 obvious_field = zero_neighbours[0]
-                return obvious_field
+                return list(obvious_field)
 
+
+def find_best_fields(occurances: np.ndarray, margin = 0.10) -> tuple[tuple, tuple]:
+    """
+    Finds highest numbers in given occurances array within given margin.
+
+    :param occurances: calculated occurances array
+    :param margin: fraction of highest values that should qualify as "good fields", default is 0.10 (10%)
+    :return:    good_fields - tuple of fields indices that contain <margin>% highest values
+                best_field - indices of highest value field
+                total_samples - total number of samples upon which the occurances array was build
+                best_prob - highest hit probability (highest found value / total_samples)
+    """
+
+    # Threshold set as % of maximum probability found
+    max = occurances.max()
+    threshold = (1 - margin) * max
+
+    # Total hits = sum of all values in the array. Values in the array represent how many times each field was hit in
+    # the process of generating random complete boards from considered known board state
+    total_hits = 0
+    good_fields = []
+    for x in range(0, 10):
+        for y in range(0, 10):
+            total_hits = total_hits + occurances[x][y]
+            # Only if probability of current field is above threshold, add the current field to list
+            if occurances[x][y] > threshold:
+                good_fields.append([x, y])
+
+    # In each generated game exactly 21 fields were hit (21 ship segments)
+    total_samples = total_hits / 21
+
+    # Highest probability can be recalculated from the available data like this (no need to store it in numpy file)
+    best_prob = max / total_samples
+    best_field = list(np.argwhere(occurances == max))
+
+    return good_fields, best_field, total_samples, best_prob
 
 
 if __name__ == "__main__":

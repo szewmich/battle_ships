@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../TW_units_tester/.idea/TW_units_tester.iml" filepath="$PROJECT_DIR$/../TW_units_tester/.idea/TW_units_tester.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/battle_ships.iml" filepath="$PROJECT_DIR$/.idea/battle_ships.iml" />
     </modules>
   </component>
