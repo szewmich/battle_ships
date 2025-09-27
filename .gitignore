@@ -29,6 +29,7 @@ prob_map_basic.py
 param_sens_study/Figure_1.png
 avg_res_file.csv
 advanced_autovalidation.py
+notes
 /backups
 *.toc
 *.zip
@@ -48,3 +49,17 @@ build/param_sens_study/warn-param_sens_study.txt
 /.idea
 *.pptx
 *.spec
+bias.py
+adv_time_data.csv
+all_games_results - Copy.csv
+/bias_checks
+bias_detection_study_01.ipynb
+fun_8x8.py
+notes
+random_board_generator_8x8.py
+test_3.py
+biased_boards.csv
+random_boards.csv
+/bias_checks
+bias_checks/biased_boards.csv
+bias_checks/random_boards.csv
