@@ -72,7 +72,7 @@ def load_array_from_RTP_lmdb(known_board, LMDB_PATH_TEMPLATE):
 
 if __name__ == "__main__":
     SHARD_COUNT = 100  # Number of LMDB database shards
-    LMDB_PATH_TEMPLATE = "prob_density_maps_adv_lmdb\\shard_{:02d}.lmdb"  # LMDB file path pattern
+    LMDB_PATH_TEMPLATE = "prob_maps_adv_lmdb\\shard_{:02d}.lmdb"  # LMDB file path pattern
     MAP_SIZE = 10 ** 8  # 100MB per shard (can be increased at any time)
     shard_envs = initialize_RTP_lmdb(SHARD_COUNT, LMDB_PATH_TEMPLATE, MAP_SIZE)
 

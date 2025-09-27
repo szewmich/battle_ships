@@ -246,7 +246,7 @@ def load_data(data_dir: str, margin: float) -> tuple[list, float, np.ndarray, in
     threshold = (1 - margin) * max
 
     # Total hits = sum of all values in the array (values in the array represent how many times each field was hit in
-    # the process of generating random games from considered state - check prob_density_montecarlo module for details)
+    # the process of generating random games from considered state - check prob_map_montecarlo module for details)
     total_hits = 0
 
     good_fields = []
@@ -314,16 +314,16 @@ def place_ship_modified(board_passed, n_seg, orient, field):
         return None
 
 
-def write_to_library(prob_maps_dir: str, prob_dens_map: np.ndarray, prob_map_file_name: str):
+def write_to_library(prob_maps_dir: str, prob_map: np.ndarray, prob_map_file_name: str):
     """
-    Writes calculated probability density map for given game code to the RadioTelegraphic Phonebook Library.
+    Writes calculated probability map map for given game code to the RadioTelegraphic Phonebook Library.
 
     :param prob_maps_dir: directory of the library
-    :param prob_dens_map: calculated probability density map (ndarray)
+    :param prob_map: calculated probability map map (ndarray)
     :param prob_map_file_name: name of the file (game code + .npy)
     """
     full_path = os.path.join(prob_maps_dir, prob_map_file_name)
-    np.save(full_path, prob_dens_map)  # Save as a .npy file
+    np.save(full_path, prob_map)  # Save as a .npy file
     print(f"Saved calculation data for current game setup as {prob_map_file_name}")
 
 def update_board_state_100chars_code(board_known: np.ndarray) -> str:
@@ -464,7 +464,7 @@ def find_best_fields(occurances: np.ndarray, margin = 0.10) -> tuple[tuple, tupl
 
 if __name__ == "__main__":
     field_number = 0
-    data_dir = "prob_density_maps\\prob_density_map_miss_field_" + str(field_number) + ".npy"
+    data_dir = "prob_maps\\prob_map_miss_field_" + str(field_number) + ".npy"
     good_fields = load_data(data_dir, margin=0.10)
 
     print(good_fields)

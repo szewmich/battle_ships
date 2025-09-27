@@ -6,11 +6,11 @@ import RTP_lmdb as rtp
 
 
 SHARD_COUNT = 100  # Number of LMDB databases (one per zero count)
-LMDB_PATH_TEMPLATE = "prob_density_maps_mc_lmdb\\shard_{:02d}.lmdb"  # LMDB file path pattern
+LMDB_PATH_TEMPLATE = "prob_maps_mc_lmdb\\shard_{:02d}.lmdb"  # LMDB file path pattern
 MAP_SIZE = 10 ** 8  # 100MB per shard (can be increased at any time)
 
 
-source_dir = "prob_density_maps_mc_100chars\\"
+source_dir = "prob_maps_mc_100chars\\"
 
 
 prob_map_library = os.listdir(source_dir )

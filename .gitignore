@@ -11,11 +11,11 @@ game_random_shots.py
 heatmap.py
 generators_test.py
 param_sens_study_2nd_stage.py
-prob_density_advanced - Copy.py
-prob_density_full_board.py
-prob_density_full_board_autotester.py
-prob_density_mc_vs_blank.py
-prob_density_montecarlo_combs.py
+prob_map_advanced - Copy.py
+prob_map_full_board.py
+prob_map_full_board_autotester.py
+prob_map_mc_vs_blank.py
+prob_map_montecarlo_combs.py
 random_distribution.py
 random_distribution_backup.py
 read_adv_library.py
@@ -25,7 +25,7 @@ test_2.py
 test.py
 shots.py
 profile.svg
-prob_density_basic.py
+prob_map_basic.py
 param_sens_study/Figure_1.png
 avg_res_file.csv
 advanced_autovalidation.py
@@ -38,8 +38,8 @@ advanced_autovalidation.py
 build/param_sens_study/warn-param_sens_study.txt
 *.html
 /dist/param_sens_study/_internal
-/prob_density_maps_adv_lmdb
-/prob_density_maps_mc_lmdb
+/prob_maps_adv_lmdb
+/prob_maps_mc_lmdb
 /RTP_shards
 /RTP_shards_v2
 /venv

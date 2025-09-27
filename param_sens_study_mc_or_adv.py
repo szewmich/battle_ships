@@ -10,8 +10,8 @@ import pandas as pd
 import fun
 import random_board_generator
 import reverse_validator
-import prob_density_advanced
-import prob_density_montecarlo
+import prob_map_advanced
+import prob_map_montecarlo
 import RTP_lmdb as rtp
 
 ###########################################################################
@@ -27,7 +27,7 @@ print (param_sens_study_path)
 
 # Initialize lmdb enviroment (Data storage system for RTP library - more explained later)
 SHARD_COUNT = 100  # Number of LMDB database shards
-LMDB_PATH_TEMPLATE = "prob_density_maps_adv_lmdb\\shard_{:02d}.lmdb"  # LMDB file path pattern
+LMDB_PATH_TEMPLATE = "prob_maps_adv_lmdb\\shard_{:02d}.lmdb"  # LMDB file path pattern
 MAP_SIZE = 10 ** 8  # 100MB per shard (can be increased at any time)
 shard_envs = rtp. initialize_RTP_lmdb(SHARD_COUNT, LMDB_PATH_TEMPLATE, MAP_SIZE)
 
@@ -113,7 +113,7 @@ codes_done = results['board_state_100chars_code'].to_list()
 ###########################################################################
 # Optional - use to run all games from prob_maps_adv_reduced_dir folder
 ###########################################################################
-prob_map_adv_100chars_dir = "prob_density_maps_adv_100chars\\"
+prob_map_adv_100chars_dir = "prob_maps_adv_100chars\\"
 prob_map_adv_100chars_library = os.listdir(prob_map_adv_100chars_dir)
 boards_to_run = []
 for filename in prob_map_adv_100chars_library:
@@ -123,9 +123,9 @@ for filename in prob_map_adv_100chars_library:
         matrix = np.zeros(100)
         for n in range(0,100):
             matrix[n] = str(board_state_100chars_code[n])
-        prob_dens = np.array(matrix.reshape(10,10), dtype='int16')
+        prob_map = np.array(matrix.reshape(10,10), dtype='int16')
         if board_state_100chars_code not in codes_done:
-            boards_to_run.append(prob_dens)
+            boards_to_run.append(prob_map)
 n_files = len(boards_to_run)
 print(n_files)
 # exit()
@@ -142,7 +142,7 @@ for known_board in boards_to_run:
         print(occurances_adv)
     else:
         occurances_adv, best_field_adv, best_prob_adv, total_unique_adv, time_adv, game_reduced_code =\
-            prob_density_advanced.calculate_probs_advanced(known_board)
+            prob_map_advanced.calculate_probs_advanced(known_board)
 
     relative_error_avg_game = 0
     time_mc_avg_game = 0
@@ -167,7 +167,7 @@ for known_board in boards_to_run:
         #                                'rel_error', 'time_mc'])
         for k in range (0,n_repetitions):
 
-            best_field_mc, time_mc, occurances_mc, best_prob_mc = prob_density_montecarlo.\
+            best_field_mc, time_mc, occurances_mc, best_prob_mc = prob_map_montecarlo.\
                 calculate_probs_montecarlo (known_board, conf_level, margin_estim, margin_highest)
 
             x = best_field_mc[0]

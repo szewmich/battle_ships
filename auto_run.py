@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-import prob_density_advanced
+import prob_map_advanced
 import fun
 
 ############################################################################################################
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # 3. board state contains desired number of free fields (eg. c >= 15 and c < 60:)
 
     # RadioTelegraphic Phonebook (RTP) directory, calculated by MC algorithm:
-    prob_maps_mc_100chars_dir = "prob_density_maps_mc_100chars\\"
+    prob_maps_mc_100chars_dir = "prob_maps_mc_100chars\\"
     prob_maps_mc_library = os.listdir(prob_maps_mc_100chars_dir)
     n_files = len(prob_maps_mc_library)
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     ############################################################################################################
     for files_done, known_board in enumerate(boards_to_run):
         print(known_board)
-        occurances, best_field, best_prob, total_unique, time_adv, board_state_100chars_code = prob_density_advanced.\
+        occurances, best_field, best_prob, total_unique, time_adv, board_state_100chars_code = prob_map_advanced.\
             calculate_probs_advanced(known_board)
         fun.save_adv_times(board_state_100chars_code, time_adv)
 

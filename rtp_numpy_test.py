@@ -9,7 +9,7 @@ LMDB_PATH_TEMPLATE = "RTP_shards/shard_{:02d}.lmdb"  # LMDB file path pattern
 MAP_SIZE = 10**8  # 10GB per shard (adjust as needed)
 
 prob_maps_dir = "test_100chars\\"
-prob_maps_condensed_dir = "test_100chars_condensed\\"
+prob_maps_conmaped_dir = "test_100chars_conmaped\\"
 n_files = 100_000
 
 
@@ -23,9 +23,9 @@ def get_shard_index(arr):
 def retrieve_array(search_array):
     shard_index = get_shard_index(search_array)
     file_name = "_" + str(shard_index) + ".npy"
-    path = prob_maps_condensed_dir + file_name
-    condensed_library = os.listdir(prob_maps_condensed_dir)
-    if file_name in condensed_library:
+    path = prob_maps_conmaped_dir + file_name
+    conmaped_library = os.listdir(prob_maps_conmaped_dir)
+    if file_name in conmaped_library:
         numpy_database = np.load(path, allow_pickle=True)
     else:
         return None
@@ -43,11 +43,11 @@ def retrieve_array(search_array):
 custom_dtype = [('Label', 'U100'), ('Array', 'O')]  # 'U10' for string (up to 10 chars), 'O' for object (array)
 
 
-# WRITE CONDENSED
-write_start_time_condensed = time.time()
+# WRITE CONmapED
+write_start_time_conmaped = time.time()
 for i in range(n_files):  # Example: Insert 1k records
 
-    condensed_library = os.listdir(prob_maps_condensed_dir)
+    conmaped_library = os.listdir(prob_maps_conmaped_dir)
 
     # Generate a random original array
     original_array = np.random.randint(0, 2, (10, 10), dtype=np.uint8)
@@ -59,8 +59,8 @@ for i in range(n_files):  # Example: Insert 1k records
     shard_index = get_shard_index(original_array)
 
     file_name = "_" + str(shard_index) + ".npy"
-    path = prob_maps_condensed_dir + file_name
-    if file_name not in condensed_library:
+    path = prob_maps_conmaped_dir + file_name
+    if file_name not in conmaped_library:
         numpy_database = np.empty(0, dtype=custom_dtype)
     else:
         numpy_database = np.load(path, allow_pickle=True)
@@ -74,13 +74,13 @@ for i in range(n_files):  # Example: Insert 1k records
 
     print(f"saved array number: {i}")
 
-write_total_time_condensed = time.time() - write_start_time_condensed
+write_total_time_conmaped = time.time() - write_start_time_conmaped
 
 
 
-# RETRIEVE FOR CONDENSED
-total_retrieved_condensed = 0
-read_start_time_condensed = time.time()
+# RETRIEVE FOR CONmapED
+total_retrieved_conmaped = 0
+read_start_time_conmaped = time.time()
 for i in range(n_files):  # Example: Insert 1k records
 
     # Generate a random original array
@@ -90,8 +90,8 @@ for i in range(n_files):  # Example: Insert 1k records
     if retrieved_data is not None:
         computed = retrieved_data
         print("Retrieved Computed Array:\n", computed)
-        total_retrieved_condensed += 1
-read_total_time_condensed = time.time() - read_start_time_condensed
+        total_retrieved_conmaped += 1
+read_total_time_conmaped = time.time() - read_start_time_conmaped
 
 
 
@@ -135,9 +135,9 @@ read_total_time_simple = time.time() - read_start_time_simple
 
 
 
-print(f'write_total_time_condensed: {write_total_time_condensed}')
-print(f'read_total_time_condensed: {read_total_time_condensed}')
-print(f'total_retrieved_condensed: {total_retrieved_condensed}')
+print(f'write_total_time_conmaped: {write_total_time_conmaped}')
+print(f'read_total_time_conmaped: {read_total_time_conmaped}')
+print(f'total_retrieved_conmaped: {total_retrieved_conmaped}')
 
 
 print(f'write_total_time_simple: {write_total_time_simple}')

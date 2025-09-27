@@ -9,7 +9,7 @@ pd.set_option('display.max_rows', 400)
 pd.set_option('display.max_columns', 20)
 pd.set_option('max_colwidth', 2000)
 
-prob_maps_adv_reduced_dir = "prob_density_maps_adv_reduced\\"
+prob_maps_adv_reduced_dir = "prob_maps_adv_reduced\\"
 prob_map_library = os.listdir(prob_maps_adv_reduced_dir)
 
 boards_to_run = []
@@ -22,9 +22,9 @@ for filename in prob_map_library:
     matrix = np.zeros(100)
     for n in range(0,100):
         matrix[n] = str(game_reduced_code[n])
-    prob_dens = np.array(matrix.reshape(10,10), dtype='int16')
-    if fun.check_if_obvious(prob_dens) is None:
-        boards_to_run.append(prob_dens)
+    prob_map = np.array(matrix.reshape(10,10), dtype='int16')
+    if fun.check_if_obvious(prob_map) is None:
+        boards_to_run.append(prob_map)
         game_codes_to_run.append(game_reduced_code)
         number_of_0s.append(game_reduced_code.count('0'))
         c_ones = game_reduced_code.count('1')

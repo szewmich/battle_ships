@@ -6,12 +6,12 @@ import os
 import shutil
 
 import random_board_generator
-import prob_density_montecarlo
+import prob_map_montecarlo
 import fun
 
 
-prob_maps_dir = "prob_density_maps\\"
-prob_maps_100chars_dir = "prob_density_maps_100chars\\"
+prob_maps_dir = "prob_maps\\"
+prob_maps_100chars_dir = "prob_maps_100chars\\"
 
 prob_map_library = os.listdir(prob_maps_dir)
 n = 0

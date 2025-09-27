@@ -6,8 +6,8 @@ import random
 import os
 
 import random_board_generator
-import prob_density_montecarlo
-import prob_density_advanced
+import prob_map_montecarlo
+import prob_map_advanced
 import fun
 import RTP_lmdb as rtp
 
@@ -18,14 +18,17 @@ n_games = 10000
 moves_till_break = 100
 
 # RadioTelegraphic Phonebook (RTP) directory:
-prob_maps_mc_history_dir = "prob_density_maps_mc_history\\"
-prob_maps_mc_100chars_dir = "prob_density_maps_mc_100chars\\"
-prob_maps_adv_100chars_dir = "prob_density_maps_adv_100chars\\"
+prob_maps_mc_history_dir = "prob_maps_mc_history\\"
+prob_maps_mc_100chars_dir = "prob_maps_mc_100chars\\"
+prob_maps_adv_100chars_dir = "prob_maps_adv_100chars\\"
 all_games_results_file_path = "all_games_results.csv"
+
+# Data for param_sens_study_L05
+adv_time_data_file_path = "adv_time_data.csv"                       
 
 # Initialize lmdb enviroment (Data storage system for RTP library - more explained later)
 SHARD_COUNT = 100  # Number of LMDB database shards
-LMDB_PATH_TEMPLATE = "prob_density_maps_mc_lmdb\\shard_{:02d}.lmdb"  # LMDB file path pattern
+LMDB_PATH_TEMPLATE = "prob_maps_mc_lmdb\\shard_{:02d}.lmdb"  # LMDB file path pattern
 MAP_SIZE = 10 ** 8  # 100MB per shard (can be increased at any time)
 shard_envs = rtp. initialize_RTP_lmdb(SHARD_COUNT, LMDB_PATH_TEMPLATE, MAP_SIZE)
 
@@ -36,6 +39,16 @@ if all_games_results_file_path in os.listdir(os.getcwd()):
 else:
     all_games_results = None
     print('created new all_games_results dataframe')
+
+# Data for param_sens_study_L05
+# Load adv_time_data_file or create new one
+if adv_time_data_file_path in os.listdir(os.getcwd()):
+    adv_time_data = pd.read_csv(adv_time_data_file_path)
+    print('loaded existing adv_time_data dataframe')
+else:
+    adv_time_data = None
+    print('created new adv_time_data dataframe')
+
 
 # GLOBAL COUNTERS
 moves_all_games = 0
@@ -82,6 +95,7 @@ configs_levels = random_board_generator.create_configs(board_clear, free_fields,
 for g_num in range(1, n_games + 1):
     print('Starting game number', g_num)
     zero_time = time.time()
+    time_at_switch_set = False
     # List available probability maps, update after each game
     prob_map_library = os.listdir(prob_maps_mc_100chars_dir)
 
@@ -176,7 +190,7 @@ for g_num in range(1, n_games + 1):
         # Determine best hit probability field
         print ('looking for best probability field...')
 
-        # A precalculated probability density map file for this known board state would have this name:
+        # A precalculated probability map map file for this known board state would have this name:
         prob_map_history_file_name = game_history_code + ".npy"
         prob_map_100chars_file_name = board_state_100chars_code + ".npy"
 
@@ -205,22 +219,53 @@ for g_num in range(1, n_games + 1):
             n_obvious +=1
             target_methods = target_methods + 'o'
 
-        # If there is no obvious field, calculate probabilities with montecarlo approach for current game state
+        # If there is no obvious field, calculate probabilities with montecarlo or advanced approach for current game state
         # That's the key part of this whole project
         else:
+            method_choice = None
             n_zeros = board_state_100chars_code.count("0")
+            n_2 = board_state_100chars_code.count("2")
+
             if n_zeros > 50:
+                method_choice = "mc"
+            else:
+                if n_zeros >= 46:
+                    if n_2 >= 4:
+                        method_choice = "adv"
+                    else:
+                        method_choice = "mc"
+                else:
+                    if n_2 == 0:
+                        method_choice = "mc"
+                    else:
+                        method_choice = "adv"
+
+            if method_choice == "mc":
                 print(f'Did not find precalculated board_state_100chars_code: {board_state_100chars_code} - Calculating using MC method...')
-                best_field, calc_time, occurances, best_prob = prob_density_montecarlo.\
+                best_field, calc_time, occurances, best_prob = prob_map_montecarlo.\
                                                                 calculate_probs_montecarlo(known_board, conf_level = 2.58, margin_estim = 1.00, margin_highest = 0.12)
                 n_calc_mc +=1
-                target_methods = target_methods + 'm'
-            else:
+                target_methods = target_methods + 'm' 
+
+            if method_choice == "adv":
+                if not time_at_switch_set:
+                    time_at_switch = round(time.time() - zero_time)
+                    print(f'Time at switch: {time_at_switch} sec')
+                    time_at_switch_set = True
                 print(f'Did not find precalculated board_state_100chars_code: {board_state_100chars_code} - Calculating using ADV method...')
                 occurances, best_field, best_prob, total_unique, calc_time, game_reduced_code =\
-                    prob_density_advanced.calculate_probs_advanced(known_board)
+                    prob_map_advanced.calculate_probs_advanced(known_board)
                 n_calc_adv +=1
                 target_methods = target_methods + 'a'
+
+
+
+                # Save data for param_sens_study_L05
+                if n_zeros <= 50 and n_zeros > 30:
+                    adv_time_new_row_list = [board_state_100chars_code, best_field, best_prob, calc_time]
+                    adv_time_new_row_df = pd.DataFrame([adv_time_new_row_list], columns=['board_state_100chars_code', 'best_field', 'best_prob', 'calc_time'])
+                    adv_time_data = pd.concat([adv_time_data, adv_time_new_row_df], ignore_index=True)
+                    adv_time_data.to_csv(adv_time_data_file_path, index=False)
 
             # Add calculated data to the library. Do it only if calculation took > 0.1s
             # (to avoid overloading the library with lots of data that could be calculated fast in place)
@@ -277,8 +322,8 @@ for g_num in range(1, n_games + 1):
     print ('total time: ', time_game)
 
 
-    new_row_data = [board_initial_100chars_code, game_history_code, moves, time_game, n_retrieved, n_obvious, n_calc_mc, n_calc_adv, target_methods]
-    new_row = pd.DataFrame([new_row_data], columns=['board_initial_100chars_code', 'game_history_code', 'moves', 'time_game', 'n_retrieved', 'n_obvious', 'n_calc_mc', 'n_calc_adv', 'target_methods'])
+    new_row_data = [board_initial_100chars_code, game_history_code, moves, time_game, n_retrieved, n_obvious, n_calc_mc, n_calc_adv, target_methods, time_at_switch]
+    new_row = pd.DataFrame([new_row_data], columns=['board_initial_100chars_code', 'game_history_code', 'moves', 'time_game', 'n_retrieved', 'n_obvious', 'n_calc_mc', 'n_calc_adv', 'target_methods', 'time_at_switch'])
 
     if all_games_results is not None:
         all_games_results = pd.concat([all_games_results, new_row], ignore_index=True)
@@ -291,7 +336,7 @@ for g_num in range(1, n_games + 1):
 
     moves_avg = all_games_results['moves'].mean()
     time_avg = all_games_results['time_game'].mean()
-
+ 
     print(all_games_results)
     print('average moves per game: ', moves_avg)
     print('average time per game: ', time_avg)

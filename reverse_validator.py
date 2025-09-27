@@ -7,20 +7,20 @@ col = 10
 
 upper_limit = row - 1
 #
-# prob_dens = np.array([[0] * col for i in range(row)])
+# prob_map = np.array([[0] * col for i in range(row)])
 
-# prob_dens[0] = [7, 7, 7, 7, 7, 5, 7, 7, 2, 7]
-# prob_dens[1] = [0, 7, 4, 7, 7, 5, 7, 7, 2, 7]
-# prob_dens[2] = [7, 7, 4, 7, 7, 5, 7, 7, 7, 7]
-# prob_dens[3] = [0, 7, 4, 7, 7, 5, 7, 7, 2, 2]
-# prob_dens[4] = [7, 7, 4, 7, 7, 5, 7, 7, 7, 7]
-# prob_dens[5] = [7, 7, 7, 7, 7, 7, 7, 3, 7, 3]
-# prob_dens[6] = [7, 0, 7, 7, 2, 7, 7, 3, 7, 3]
-# prob_dens[7] = [7, 7, 0, 7, 2, 7, 7, 3, 7, 3]
-# prob_dens[8] = [7, 7, 0, 7, 7, 7, 7, 7, 7, 7]
-# prob_dens[9] = [0, 0, 0, 7, 7, 0, 7, 7, 0, 7]
+# prob_map[0] = [7, 7, 7, 7, 7, 5, 7, 7, 2, 7]
+# prob_map[1] = [0, 7, 4, 7, 7, 5, 7, 7, 2, 7]
+# prob_map[2] = [7, 7, 4, 7, 7, 5, 7, 7, 7, 7]
+# prob_map[3] = [0, 7, 4, 7, 7, 5, 7, 7, 2, 2]
+# prob_map[4] = [7, 7, 4, 7, 7, 5, 7, 7, 7, 7]
+# prob_map[5] = [7, 7, 7, 7, 7, 7, 7, 3, 7, 3]
+# prob_map[6] = [7, 0, 7, 7, 2, 7, 7, 3, 7, 3]
+# prob_map[7] = [7, 7, 0, 7, 2, 7, 7, 3, 7, 3]
+# prob_map[8] = [7, 7, 0, 7, 7, 7, 7, 7, 7, 7]
+# prob_map[9] = [0, 0, 0, 7, 7, 0, 7, 7, 0, 7]
 
-# board = prob_dens
+# board = prob_map
 seg_2_fields = []
 seg_3_fields = []
 seg_4_fields = []

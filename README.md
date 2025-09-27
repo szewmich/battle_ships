@@ -1,6 +1,4 @@
 # battle_ships
-As of when I'm writing this, I am a beginner, hobbyist python programmer. This project was made purely for fun and learning purposes.
-
 This project is a numerical simulator of a simple "battleships" game which main scope is about  finding, employing and validating a perfect algorithm for playing the game. The goal is winning the games in lowest amount of moves possible, on average. 
 To achieve this, the most straightforward assumption is that the player should in each move maximize the probability of scoring a hit - this is what my algorithm does, it calculates probabilities and targets the most promising fields. I think it's fair to say this is one good way of approaching the problem, though not sure if it's "perfect" for achieving the actual end goal (minimize amount of moves per game). More on that may come in future if I decide to explore other paths.
  
@@ -26,10 +24,10 @@ Other than that and referenced function modules, there are some auxiliary script
 The main scripts are widely documented (docstrings and comments).
 
 To explore the project, follow this order:
-1. prob_density_montecarlo.py + dependencies
-Main function of this script takes a certain board state as an input and calculates the probability density matrix for scoring a hit in each field using Monte-Carlo approach and statistical methods for estimation. It relies on other modules: random board generator and general functions module.
-2. prob_density_advanced.py + dependencies
-Main function of this script takes a certain board state as an input and calculates the probability density matrix for scoring a hit in each field using brute force approach (generation and counting of all possible setups). Same dependencies as above. Despite its simplistic approach, this script's build might actually be harder to understand than monte-carlo one, because of a giant, 7-level nested loop that runs through all ships to be placed.
+1. prob_map_montecarlo.py + dependencies
+Main function of this script takes a certain board state as an input and calculates the probability matrix for scoring a hit in each field using Monte-Carlo approach and statistical methods for estimation. It relies on other modules: random board generator and general functions module.
+2. prob_map_advanced.py + dependencies
+Main function of this script takes a certain board state as an input and calculates the probability matrix for scoring a hit in each field using brute force approach (generation and counting of all possible setups). Same dependencies as above. Despite its simplistic approach, this script's build might actually be harder to understand than monte-carlo one, because of a giant, 7-level nested loop that runs through all ships to be placed.
 3. game.py + dependencies
 Multiple games simulator - generates random games, calculates probabilities with the above methods, saves or retrieves calculation data into the database (so called 'RTP'), shoots the most promising fields, updates the board state and repeats the shooting sequence until all ships get sunk. Finally, it gathers statistics on average hit success rates and required amount of moves to complete the game.
 4. param_sens_study.py + dependencies + param_sens_study_notebooks
@@ -37,6 +35,10 @@ Study performed in order to determine the optimal parameters for monte-carlo met
 
 
 Current state of the project:
-- Param sens study is ongoing.
-- Calculation database (RTP) contains only a couple thousand entries, more to come after the above is done.
-- Multiple game simulator - statistics collected so far seem promising, but RTP needs to be heavily extended to allow for fast simulation of complete game sequences, to draw meaningful statistics from. 
+- Param sens study is done, optimal parameters for monte-carlo method are employed.
+- Calculation database (RTP) contains above 15k entries.
+- Multiple game simulator - the curve of calculation time vs number of entries in RTP is already almost flat, with average game simulation time of 60sec. Average amount of moves to win the game converges to ~44.39
+
+What's coming next:
+- module responsible for non-random bias detection in board setups done by "defending" player
+- adjustment to shooting algorithm based on above dias detection, leading to an improvement in average moves to win when playing against an opponent who does not deploy ships in ideally rabdom fashion
