@@ -52,14 +52,17 @@ build/param_sens_study/warn-param_sens_study.txt
 bias.py
 adv_time_data.csv
 all_games_results - Copy.csv
-/bias_checks
 bias_detection_study_01.ipynb
 fun_8x8.py
 notes
 random_board_generator_8x8.py
 test_3.py
-biased_boards.csv
-random_boards.csv
-/bias_checks
-bias_checks/biased_boards.csv
-bias_checks/random_boards.csv
+bias_detection_study_01_backup.ipynb
+random_board_generator_dim - Copy.py
+confidence_intrval.py
+test_4.py
+prob_map_montecarlo_8x8.py
+prob_map_montecarlo_8x8.py
+bias_detection_study_04.ipynb
+bias_checks/random_6x6_results.txt
+bias_checks/metrics_percentiles_per_n_boards_2.5th_backup.csv

@@ -108,7 +108,7 @@ configs_levels = random_board_generator.create_configs(board_clear, free_fields,
 
 all_boards_df = pd.read_csv("bias_checks\\all_boards_with_metrics.csv")
 # get only first 10500 rows of df
-red_boards_df = all_boards_df[10167:11000]
+red_boards_df = all_boards_df[10500:10600]
 
 for g_num in range(1, n_games + 1):
     print('Starting game number', g_num)

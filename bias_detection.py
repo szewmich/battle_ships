@@ -83,13 +83,34 @@ def metrics_to_scaled_vector(metrics, scaler_params):
     return x_scaled.reshape(1, -1)
 
 def prepare_new_data(hyp_board, scaler_params):
-    # if type(hyp_board) == str:
-    #     board_array = np.array([int(x) for x in hyp_board]).reshape((6,6))
-    # else:
-    board_array = hyp_board
+    if type(hyp_board) == str:
+        board_array = np.array([int(x) for x in hyp_board]).reshape((6,6))
+    else:
+        board_array = hyp_board
     current_metrics = bias_metrics.calculate_bias_metrics(board_array)
     new_batch_s = metrics_to_scaled_vector(current_metrics, scaler_params)
     return new_batch_s
+
+
+def prepare_new_data_batch(generated_boards, scaler_params):
+    
+    center, scale, feature_order = scaler_params
+
+    N = len(generated_boards)
+    F = len(feature_order)
+
+    X = np.zeros((N, F), dtype=np.float64)
+
+    for i, board in enumerate(generated_boards):
+        metrics = bias_metrics.calculate_bias_metrics(board)   # returns dict
+
+        # Convert metrics dict -> ordered row vector
+        X[i] = [metrics[m] for m in feature_order]
+
+        x_scaled = (X - center) / scale
+
+    return x_scaled
+
 
 def get_class_weights(df):
     n_R = len(df[df['label'] == 0])
@@ -105,6 +126,20 @@ def predict_LR_new_board(new_board_s, class_weights, clf):
     pi_R, pi_B = class_weights
     c = clf.predict_proba(new_board_s)
     p = c[0][1]  # probability of being in biased class
+    # print(c)
+
+    odds = p / (1 - p)
+    LR_hat = odds * (pi_R / pi_B)
+    # LR_hat = odds
+
+    # print(f'weight = {np.round(LR_hat, 3)}')
+    return LR_hat
+
+def predict_LR_new_boards(new_boards_s, class_weights, clf):
+
+    pi_R, pi_B = class_weights
+    c = clf.predict_proba(new_boards_s)
+    p = c[:, 1] # probability of being in biased class
     # print(c)
 
     odds = p / (1 - p)
@@ -178,7 +213,7 @@ if __name__ == "__main__":
 
     # clf.fit(Xs, red_boards_df['label'])
 
-    new_board_s = prepare_new_data('000000000000020002020002000000000333', scaler)
+    new_board_s = prepare_new_data('000000000000020002020002000000000333', scaler_params=(scaler.center_, scaler.scale_, X.columns.tolist()))
 
     class_weights = get_class_weights(red_boards_df)
     LR_hat = predict_LR_new_board(new_board_s, class_weights, clf)
@@ -188,20 +223,20 @@ if __name__ == "__main__":
     batch_size = 20
     n = int((11000 - 10500) / batch_size)
 
-    for k in range(n):
-        # new_batch = all_boards_df[10500 + (k) * batch_size : 10500 + (k+1) * batch_size]
+    # for k in range(n):
+    #     # new_batch = all_boards_df[10500 + (k) * batch_size : 10500 + (k+1) * batch_size]
 
-        new_batch = all_boards_df[: 10500 + (k+1) * batch_size]
-        class_weights = get_class_weights(new_batch)
+    #     new_batch = all_boards_df[: 10500 + (k+1) * batch_size]
+    #     class_weights = get_class_weights(new_batch)
 
-        X_new = new_batch.drop(columns=['label'])
-        X_new_s = scaler.transform(X_new)
+    #     X_new = new_batch.drop(columns=['label'])
+    #     X_new_s = scaler.transform(X_new)
 
 
-        clf.fit(X_new_s, new_batch['label'])
+    #     clf.fit(X_new_s, new_batch['label'])
 
-        LR_hat = predict_LR_new_board(new_board_s, class_weights, clf)
-        print(f'weight = {np.round(LR_hat, 3)}')
+    #     LR_hat = predict_LR_new_board(new_board_s, class_weights, clf)
+    #     print(f'weight = {np.round(LR_hat, 3)}')
 
 # save classifier and scaler using joblib
     import joblib

@@ -4,6 +4,7 @@ import random
 from collections import Counter
 import math
 import time
+import pandas as pd
 
 import fun_dim as fun
 import random_board_generator_dim as random_board_generator
@@ -42,6 +43,28 @@ def count_occurances(board: np.ndarray, free_fields: list, hit_unsunk: list, occ
         if field not in hit_unsunk:
             if board[x][y] > 1 and board[x][y] < 6:
                 occurances[x][y] += weight
+    return occurances
+
+def count_occurances_batch(boards: list[np.ndarray], free_fields: list, hit_unsunk: list, occurances: np.ndarray, weights: list[float])\
+                    -> np.ndarray:
+    """
+    Update 'occurances' array by adding +1 to those fields which contain any type of ship segment (values 2-5) in
+    respective fields in 'board' array
+    :param board: generated board state to count ship occurances on
+    :param free_fields: initial list of free fields on the board state before generation (lvl_0)
+    :param hit_unsunk: initial list of hit unsunk fields on the board state before generation (lvl_0)
+    :param occurances: array used to store number of ship occurances per field, updated each time the function is called
+    :return: updated occurances array
+    """
+    # Ships could be added only on free fields, so it makes sense to search those only
+    for field in free_fields:
+        x = field[0]
+        y = field[1]
+        # Do not consider fields containing '1' (members of hit_unsunk)
+        if field not in hit_unsunk:
+            for id, board in enumerate(boards):
+                if board[x][y] > 1 and board[x][y] < 6:
+                    occurances[x][y] += weights[id]
     return occurances
 
 
@@ -185,41 +208,56 @@ def calculate_probs_montecarlo (known_board, conf_level = 2.58, margin_estim = 1
     # All initial status data determined - begin generating random boards fitting to it
     done = False
     all_tries = 0
-
+    batch_size = 100
+    boards_with_weights_df = pd.DataFrame(columns=['board', 'weight'])
+    
     while not done:
-        all_tries +=1
-        known_board = copy.deepcopy(known_board)
-        board_hyp_lvl_7 = random_board_generator.generate_random_board(known_board, configs_levels, n_seg_for_lvl,
-                                                                       seg5_done, seg4_done, seg3_done, seg2_done,
-                                                                       hit_unsunk, minimum_lengths, game_rules_n_ships)
+        generated_boards = []
+        n_generated = 0
 
-        if board_hyp_lvl_7 is None:
-            continue
+        
+        while n_generated < batch_size:
 
-        # REVERSE VALIDATION - optional
-        # if reverse_validator.validate(board_hyp_lvl_7) == False:
-        #     print("FAILED VALIDATION")
-        #     break
+            all_tries +=1
+            known_board = copy.deepcopy(known_board)
+            board_hyp_lvl_7 = random_board_generator.generate_random_board(known_board, configs_levels, n_seg_for_lvl,
+                                                                        seg5_done, seg4_done, seg3_done, seg2_done,
+                                                                        hit_unsunk, minimum_lengths, game_rules_n_ships)
+
+            if board_hyp_lvl_7 is None:
+                continue
+            n_generated += 1
+            generated_boards.append(board_hyp_lvl_7)
+
+            # REVERSE VALIDATION - optional
+            # if reverse_validator.validate(board_hyp_lvl_7) == False:
+            #     print("FAILED VALIDATION")
+            #     break
 
         if bias_detected:
-            new_board_s = bias_detection.prepare_new_data(board_hyp_lvl_7, scaler_params)
-            weight = bias_detection.predict_LR_new_board(new_board_s, class_weights, clf)
+            new_boards_s = bias_detection.prepare_new_data_batch(generated_boards, scaler_params)
+            weights = bias_detection.predict_LR_new_boards(new_boards_s, class_weights, clf)
             # clip between 0.1 and 2.0
-            weight = max (0.1, min(weight, 2.0))
-            weight = np.round(weight, 3)
+            weights = np.clip(weights, 0.1, 2.0)
+            weights = np.round(weights, 3)
+
+            generated_boards_codes = [fun.update_board_state_100chars_code(board) for board in generated_boards]
+
+            boards_with_weights_df_batch = pd.DataFrame({'board': generated_boards_codes, 'weight': weights})
+            boards_with_weights_df = pd.concat([boards_with_weights_df, boards_with_weights_df_batch], ignore_index=True)
 
         else:
-            weight = 1
+            weights = np.ones(batch_size, dtype = float)
 
         # generated_games +=1
-        generated_games += weight
+        generated_games += np.sum(weights)
         generated_games = round(generated_games, 3)
 
         if all_tries % 1000 == 0:
-            print(f"All tries: {all_tries}, Generated games: {generated_games}, Current weight: {weight}")
+            print(f"All tries: {all_tries}, Generated games: {generated_games}, Current weight: {weights[batch_size-1]}")
 
         # Count ship occurances for each field (+1 if any ship segment is placed on the field)
-        count_occurances(board_hyp_lvl_7, free_fields, hit_unsunk, occurances, weight)
+        count_occurances_batch(generated_boards, free_fields, hit_unsunk, occurances, weights)
 
         # Convert occurances array to a Counter object (key = 1D field id, value = occurance count) for better visualisation
         counts = Counter()
@@ -235,6 +273,8 @@ def calculate_probs_montecarlo (known_board, conf_level = 2.58, margin_estim = 1
         result, counts, required_samples, done, limiter =\
             find_highest_probability_number(counts, generated_games, conf_level, margin_estim, margin_highest, limiter)
         if done:
+            boards_with_weights_df.to_csv('bias_checks\\generated_boards_with_weights.csv', index=False)
+            exit()
             break
         # if all_tries > 100_000:
         #     print("Exceeded 100,000 tries, stopping calculation.")

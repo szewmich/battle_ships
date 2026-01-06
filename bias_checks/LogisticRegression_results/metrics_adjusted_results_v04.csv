@@ -1,0 +1,22 @@
+,distribution similarity,threshold,bias confirmed,avg_random,avg_biased
+avg_2seg_orient,0.9797166666666667,0.968,False,0.0437,-0.0017
+avg_3seg_orient,0.9800566666666668,0.96,False,-0.0004,0.0268
+seg2_same_orient,0.9771200000000003,0.96,False,0.5218,0.5019
+seg2_3_same_orient,0.9797566666666666,0.957,False,0.276,0.2622
+seg2_dist_to_left,0.9614966666666666,0.942,False,2.299,2.2646
+seg2_dist_to_right,0.9634466666666666,0.937,False,2.1901,2.2359
+seg2_dist_to_upper,0.9583933333333332,0.941,False,2.2715,2.2525
+seg2_dist_to_bottom,0.96053,0.94,False,2.2394,2.2471
+seg3_dist_to_left,0.9617466666666667,0.93,False,1.9371,1.9565
+seg3_dist_to_right,0.9623433333333333,0.932,False,2.0633,2.0168
+seg3_dist_to_upper,0.956453333333333,0.926,False,1.9909,2.0149
+seg3_dist_to_bottom,0.95882,0.925,False,2.0088,2.0119
+avg_spread_2_2,0.9484100000000002,0.938,False,3.0911,3.1059
+avg_spread_2_3,0.9496433333333333,0.937,False,3.701,3.6974
+avg_spread_all,0.9411400000000003,0.939,False,3.4977,3.5003
+seg2_ships_whole_at_edge,0.9649999999999999,0.957,False,0.7606,0.7813
+seg3_ships_whole_at_edge,0.97886,0.957,False,0.5049,0.5156
+total_ships_whole_at_edge,0.974,0.968,False,1.2654,1.2969
+seg2_ships_touching_edge,0.9744899999999997,0.955,False,0.591,0.5534
+seg3_ships_touching_edge,0.9790566666666666,0.958,False,0.31,0.3008
+total_ships_touching_edge,0.9783233333333335,0.965,False,0.9009,0.8542

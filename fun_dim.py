@@ -15,7 +15,7 @@ def n_segments(board: np.ndarray, n_seg: int) -> int:
     return k
 
 
-def group_adjacent_symbols(board: np.ndarray, symbol: int) -> list:
+def group_adjacent_symbols_old(board: np.ndarray, symbol: int) -> list:
     """
     Group adjacent fields containing the same given symbol in 2D array. Return list of these groups (nested lists)
 
@@ -39,6 +39,26 @@ def group_adjacent_symbols(board: np.ndarray, symbol: int) -> list:
         # Convert group_indices from ndarray to nested list and append it to groups list
         groups.append(group_indices.tolist())
         # Groups is 3-level nested list. 1st - separate groups, 2nd - fields within group, 3rd - field X,Y coordinates
+    return groups
+
+
+def group_adjacent_symbols(board: np.ndarray, symbol: int) -> list:
+    # Binary mask and connected-component labeling
+    binary_mask = (board == symbol)
+    labeled_array, num_features = label(binary_mask)
+
+    if num_features == 0:
+        return []
+
+    # Coordinates and their labels (both in the same order)
+    rows, cols = np.where(labeled_array > 0)
+    labels = labeled_array[rows, cols]
+
+    # Preallocate list of groups and append positions
+    groups = [[] for _ in range(num_features)]
+    for r, c, lab in zip(rows, cols, labels):
+        groups[lab - 1].append([int(r), int(c)])  # lab is 1-based
+
     return groups
 
 

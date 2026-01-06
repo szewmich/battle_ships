@@ -38,7 +38,7 @@ def angle(a, b, c):
 #########################################################################################
 # METRICS 
 
-def get_avg_orients (groups):
+def get_avg_orients (groups, board):
     avg_2seg_orient = 0
     avg_3seg_orient = 0
     for ship in groups:
@@ -247,7 +247,7 @@ def calculate_bias_metrics(known_board):
 
     groups = fun.group_adjacent_symbols(binary_mask, 1)
 
-    avg_2seg_orient, avg_3seg_orient, seg2_same_orient, seg2_3_same_orient = get_avg_orients (groups)
+    avg_2seg_orient, avg_3seg_orient, seg2_same_orient, seg2_3_same_orient = get_avg_orients (groups, binary_mask)
 
     (seg2_dist_to_left, seg2_dist_to_right, seg2_dist_to_upper, seg2_dist_to_bottom, seg3_dist_to_left, seg3_dist_to_right, seg3_dist_to_upper, seg3_dist_to_bottom) = get_avg_distance_to_edges (groups, known_board.shape[0])
 
@@ -484,3 +484,4 @@ def detect_bias(random_boards, biased_boards):
                                     n1 = len(random_boards), n2 = len(biased_boards), n3 = 1000,)
     
 #########################################################################################
+
